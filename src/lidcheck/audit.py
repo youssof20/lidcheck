@@ -22,8 +22,15 @@ def run() -> pd.DataFrame:
         coeff = dctn(small, norm="ortho")[:8, :8].ravel()[1:]
         bits = coeff > np.median(coeff)
         hashes.append(bits)
-        rows.append(dict(dataset=row.dataset, patient=row.patient, width=im.width,
-                         height=im.height, sha256=hashlib.sha256(raw).hexdigest()))
+        rows.append(
+            dict(
+                dataset=row.dataset,
+                patient=row.patient,
+                width=im.width,
+                height=im.height,
+                sha256=hashlib.sha256(raw).hexdigest(),
+            )
+        )
     detail = pd.DataFrame(rows)
     df = df.merge(detail, on=["dataset", "patient"], validate="one_to_one")
     parent = list(range(len(df)))
@@ -51,23 +58,39 @@ def run() -> pd.DataFrame:
     pd.DataFrame(pairs).to_csv(interim / "duplicate_pairs.csv", index=False)
     summary = []
     for name, part in df.groupby("dataset"):
-        summary.append(dict(dataset=name, images=len(part), patients=part.patient.nunique(),
-                            groups=part.group.nunique(), missing_hb=int(part.hb.isna().sum()),
-                            positive=int(part.label.sum()), negative=int((part.label == 0).sum()),
-                            hb_min=float(part.hb.min()), hb_median=float(part.hb.median()),
-                            hb_max=float(part.hb.max()),
-                            dimensions="; ".join(sorted(set(f"{r.width}x{r.height}" for r in part.itertuples()))),
-                            exact_duplicates=int(part.sha256.duplicated().sum()),
-                            near_duplicate_links=sum(df.iloc[p["first"]].dataset == name for p in pairs),
-                            masks=int((part["mask"] != "").sum()),
-                            reference_visibility="requires manual review",
-                            patient_key="country + Number" if name == "eyes" else "IMAGE_ID; one image per record, identity unverified"))
+        summary.append(
+            dict(
+                dataset=name,
+                images=len(part),
+                patients=part.patient.nunique(),
+                groups=part.group.nunique(),
+                missing_hb=int(part.hb.isna().sum()),
+                positive=int(part.label.sum()),
+                negative=int((part.label == 0).sum()),
+                hb_min=float(part.hb.min()),
+                hb_median=float(part.hb.median()),
+                hb_max=float(part.hb.max()),
+                dimensions="; ".join(
+                    sorted(set(f"{r.width}x{r.height}" for r in part.itertuples()))
+                ),
+                exact_duplicates=int(part.sha256.duplicated().sum()),
+                near_duplicate_links=sum(df.iloc[p["first"]].dataset == name for p in pairs),
+                masks=int((part["mask"] != "").sum()),
+                reference_visibility="sampled images: sclera and skin visible"
+                if name == "eyes"
+                else "sampled images: conjunctiva on black; no reference region",
+                patient_key="country + Number"
+                if name == "eyes"
+                else "IMAGE_ID; one image per record, identity unverified",
+            )
+        )
     table = pd.DataFrame(summary)
     (ROOT / "results/tables").mkdir(parents=True, exist_ok=True)
     table.to_csv(ROOT / "results/tables/data_audit.csv", index=False)
     write_json(ROOT / "results/checksums.json", archive_checksums())
     (interim / "archive_document.txt").write_text(archive_document(), encoding="utf-8")
     from lidcheck.plotting import audit_figure
+
     audit_figure(df)
     print(table.to_string(index=False))
     return df

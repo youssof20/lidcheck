@@ -19,14 +19,22 @@ def normalize(x: np.ndarray, method: str, references: bool = True) -> np.ndarray
         if not references:
             return None
         colors = lab(x)
-        l, a, b = (colors[..., i] for i in range(3))
+        lightness, a, b = (colors[..., i] for i in range(3))
         if method == "sclera":
-            region = (l > 65) & (l < 95) & (abs(a) < 8) & (abs(b) < 15)
+            region = (lightness > 65) & (lightness < 95) & (abs(a) < 8) & (abs(b) < 15)
         else:
-            h, w = l.shape
+            h, w = lightness.shape
             yy, xx = np.indices((h, w))
             border = (yy < h * 0.2) | (yy >= h * 0.8) | (xx < w * 0.2) | (xx >= w * 0.8)
-            region = border & (l > 30) & (l < 85) & (a > 3) & (a < 20) & (b > 8) & (b < 35)
+            region = (
+                border
+                & (lightness > 30)
+                & (lightness < 85)
+                & (a > 3)
+                & (a < 20)
+                & (b > 8)
+                & (b < 35)
+            )
         if region.sum() < x.shape[0] * x.shape[1] * 0.01:
             return None
         ref = np.median(x[region], axis=0)

@@ -8,10 +8,15 @@ def measure(rgb: np.ndarray, mask: np.ndarray, cohesion: float) -> dict[str, flo
     lap = -4 * lum[1:-1, 1:-1] + lum[:-2, 1:-1] + lum[2:, 1:-1] + lum[1:-1, :-2] + lum[1:-1, 2:]
     interior = mask[1:-1, 1:-1]
     roi = rgb[mask]
-    return dict(area=float(mask.mean()), cohesion=cohesion,
-                blur=float(np.var(lap[interior])) if interior.any() else 0.0,
-                clipped=float(((roi.min(axis=1) <= 5) | (roi.max(axis=1) >= 250)).mean()) if len(roi) else 1.0,
-                glare=float((rgb.min(axis=-1) >= 245).mean()))
+    return dict(
+        area=float(mask.mean()),
+        cohesion=cohesion,
+        blur=float(np.var(lap[interior])) if interior.any() else 0.0,
+        clipped=float(((roi.min(axis=1) <= 5) | (roi.max(axis=1) >= 250)).mean())
+        if len(roi)
+        else 1.0,
+        glare=float((rgb.min(axis=-1) >= 245).mean()),
+    )
 
 
 def failures(q: dict, limits: dict) -> list[str]:

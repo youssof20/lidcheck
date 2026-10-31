@@ -1,0 +1,39 @@
+cff-version: 1.2.0
+message: "Cite the code and the original dataset papers separately."
+title: "Lidcheck"
+version: 0.1.0
+type: software
+license: MIT
+repository-code: "https://github.com/youssof20/lidcheck"
+authors:
+  - name: "youssof20"
+references:
+  - type: article
+    title: "A Systematic Mapping Study on Research in Anemia Assessment with Non-Invasive Devices"
+    authors:
+      - family-names: Dimauro
+        given-names: Giovanni
+    year: 2020
+    doi: 10.3390/app10144804
+  - type: article
+    title: "Novel Biased Normalized Cuts Approach for the Automatic Segmentation of the Conjunctiva"
+    authors:
+      - family-names: Dimauro
+        given-names: Giovanni
+      - family-names: Simone
+        given-names: Luigi
+    year: 2020
+    doi: 10.3390/electronics9060997
+  - type: unpublished
+    title: "Advances in the Automated Diagnosis of Anemia: a shared Eyes-defy-anemia dataset and a novel non-invasive system with machine learning"
+    authors:
+      - family-names: Maglietta
+        given-names: Rosalia
+    notes: "Listed as under submission in the supplied archive; final citation unverified. Full supplied list in data/README.md."
+  - type: article
+    title: "CP-AnemiC: A conjunctival pallor dataset and benchmark for anemia detection in children"
+    authors:
+      - family-names: Appiahene
+        given-names: Peter
+    year: 2023
+    doi: 10.1016/j.medntd.2023.100244

@@ -46,8 +46,13 @@ def fit(x: np.ndarray, y: np.ndarray, groups: np.ndarray, seed: int) -> Model:
 
 def serialize(model: Model) -> dict:
     scaler, lr = model.base.steps[0][1], model.base.steps[1][1]
-    return dict(mean=scaler.mean_.tolist(), scale=scaler.scale_.tolist(),
-                coefficients=lr.coef_[0].tolist(), intercept=float(lr.intercept_[0]),
-                platt_coefficient=float(model.calibration.coef_[0, 0]),
-                platt_intercept=float(model.calibration.intercept_[0]),
-                threshold=model.threshold, band=model.band)
+    return dict(
+        mean=scaler.mean_.tolist(),
+        scale=scaler.scale_.tolist(),
+        coefficients=lr.coef_[0].tolist(),
+        intercept=float(lr.intercept_[0]),
+        platt_coefficient=float(model.calibration.coef_[0, 0]),
+        platt_intercept=float(model.calibration.intercept_[0]),
+        threshold=model.threshold,
+        band=model.band,
+    )

@@ -41,14 +41,27 @@ def load_data() -> pd.DataFrame:
                         if len(photos) != 1:
                             raise ValueError(f"Ambiguous patient mapping: {prefix}")
                         masks = [n for n in names if n.startswith(prefix) and n.endswith(".png")]
-                        mask = next((n for n in masks if n.endswith("_forniceal_palpebral.png")),
-                                    next((n for n in masks if n.endswith("_palpebral.png")), ""))
+                        mask = next(
+                            (n for n in masks if n.endswith("_forniceal_palpebral.png")),
+                            next((n for n in masks if n.endswith("_palpebral.png")), ""),
+                        )
                         hb = pd.to_numeric(str(row.Hgb).replace(",", "."), errors="coerce")
                         sex = str(row.Gender).strip().upper()
                         threshold = 13.0 if sex == "M" else 12.0
-                        records.append(dict(dataset=dataset, patient=f"{country}-{number}",
-                                            site=country, archive=archive, image=photos[0], mask=mask,
-                                            hb=hb, age=row.Age, sex=sex, threshold=threshold))
+                        records.append(
+                            dict(
+                                dataset=dataset,
+                                patient=f"{country}-{number}",
+                                site=country,
+                                archive=archive,
+                                image=photos[0],
+                                mask=mask,
+                                hb=hb,
+                                age=row.Age,
+                                sex=sex,
+                                threshold=threshold,
+                            )
+                        )
             else:
                 sheet = next(n for n in names if n.endswith(".xlsx"))
                 frame = pd.read_excel(io.BytesIO(z.read(sheet)))
@@ -57,10 +70,20 @@ def load_data() -> pd.DataFrame:
                     photos = [n for n in names if Path(n).stem == key and n.endswith(".png")]
                     if len(photos) != 1:
                         raise ValueError(f"Ambiguous CP image mapping: {key}")
-                    records.append(dict(dataset=dataset, patient=key, site=row.HOSPITAL,
-                                        archive=archive, image=photos[0], mask="", hb=row.HB_LEVEL,
-                                        age=row["Age(Months)"], sex=str(row.GENDER)[0].upper(),
-                                        threshold=11.0))
+                    records.append(
+                        dict(
+                            dataset=dataset,
+                            patient=key,
+                            site=row.HOSPITAL,
+                            archive=archive,
+                            image=photos[0],
+                            mask="",
+                            hb=row.HB_LEVEL,
+                            age=row["Age(Months)"],
+                            sex=str(row.GENDER)[0].upper(),
+                            threshold=11.0,
+                        )
+                    )
     df = pd.DataFrame(records)
     df["label"] = np.where(df.hb.notna(), (df.hb < df.threshold).astype(int), np.nan)
     return df
@@ -73,9 +96,9 @@ def read_image(row: pd.Series, size: int = 96, mask: bool = False) -> np.ndarray
             # Some supplied masks have invalid iCCP checksums; retain image-data CRC checks.
             chunks, pos = [raw[:8]], 8
             while pos < len(raw):
-                length = struct.unpack(">I", raw[pos:pos + 4])[0]
-                chunk = raw[pos:pos + length + 12]
-                if raw[pos + 4:pos + 8] != b"iCCP":
+                length = struct.unpack(">I", raw[pos : pos + 4])[0]
+                chunk = raw[pos : pos + length + 12]
+                if raw[pos + 4 : pos + 8] != b"iCCP":
                     chunks.append(chunk)
                 pos += length + 12
             raw = b"".join(chunks)
@@ -89,8 +112,10 @@ def read_image(row: pd.Series, size: int = 96, mask: bool = False) -> np.ndarray
 
 
 def archive_checksums() -> dict:
-    return {p.name: hashlib.file_digest(p.open("rb"), "sha256").hexdigest()
-            for p in sorted((ROOT / "data").glob("*.zip"))}
+    return {
+        p.name: hashlib.file_digest(p.open("rb"), "sha256").hexdigest()
+        for p in sorted((ROOT / "data").glob("*.zip"))
+    }
 
 
 def archive_document() -> str:
