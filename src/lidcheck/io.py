@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import struct
 import zipfile
 from pathlib import Path
 from xml.etree import ElementTree
@@ -67,7 +68,18 @@ def load_data() -> pd.DataFrame:
 
 def read_image(row: pd.Series, size: int = 96, mask: bool = False) -> np.ndarray:
     with zipfile.ZipFile(ROOT / "data" / row.archive) as z:
-        with Image.open(io.BytesIO(z.read(row["mask" if mask else "image"]))) as im:
+        raw = z.read(row["mask" if mask else "image"])
+        if raw.startswith(b"\x89PNG"):
+            # Some supplied masks have invalid iCCP checksums; retain image-data CRC checks.
+            chunks, pos = [raw[:8]], 8
+            while pos < len(raw):
+                length = struct.unpack(">I", raw[pos:pos + 4])[0]
+                chunk = raw[pos:pos + length + 12]
+                if raw[pos + 4:pos + 8] != b"iCCP":
+                    chunks.append(chunk)
+                pos += length + 12
+            raw = b"".join(chunks)
+        with Image.open(io.BytesIO(raw)) as im:
             im = ImageOps.exif_transpose(im).convert("RGB")
             pixels = np.asarray(im)
     h, w = pixels.shape[:2]
