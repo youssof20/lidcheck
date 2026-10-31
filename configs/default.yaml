@@ -1,0 +1,13 @@
+seed: 20261031
+image_size: 96
+folds: 5
+repeats: 10
+bootstrap: 2000
+methods: [none, chromaticity, gray_world, white_patch, sclera, skin]
+quality:
+  min_area: 0.01
+  max_area: 0.85
+  min_blur: 0.00001
+  max_clipped: 0.4
+  max_glare: 0.2
+  min_cohesion: 0.1
